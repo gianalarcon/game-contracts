@@ -145,7 +145,8 @@ export const spawn = async () => {
   gameId = txReceipt.events[txReceipt.events.length - 1].keys[1];
 };
 export const setWinner = async () => {
-  const randomNumber = Math.floor(Math.random() * 36);
+  //const randomNumber = Math.floor(Math.random() * 36);
+  const randomNumber = 3;
   await executeTransaction(
     theMarquisActionsAddress,
     "set_winner",
