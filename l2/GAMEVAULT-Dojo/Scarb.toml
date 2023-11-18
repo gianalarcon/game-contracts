@@ -10,7 +10,6 @@ sierra-replace-ids = true
 
 [dependencies]
 dojo = { git = "https://github.com/dojoengine/dojo" }
-#starknet = ">=2.2.0"
 
 [[target.dojo]]
 build-external-contracts = ["dojo_erc::erc20_contract::*"]
@@ -22,3 +21,7 @@ initializer_class_hash = "0xbeef"
 # Default account for katana with seed = 0
 account_address = "0x517ececd29116499f4a1b64b094da79ba08dfd54a3edaa316134c41f8160973"
 private_key = "0x1800000000300000180000000000030000000000003006001800006600"
+
+# Slot
+# account_address = "0x3df1fd692afe1a54c2f772595ec9ee51be1f1b0fd21eaf3999c06f936b49944"
+# private_key = "0x7d5e7040f8ded1ea98c570185725258a569764e19d5d4d78768b799db3eeadc"
