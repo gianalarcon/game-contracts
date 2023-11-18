@@ -25,16 +25,15 @@ katana --disable-fee
 2. **Terminal 2 - Contracts**:
 
 ```console
-cd /TheMarquis-contracts/l2/GAMEVAULT-Dojo && sozo build && sozo migrate
+cd game-contracts/l2/GAMEVAULT-Dojo && sozo build && sozo migrate
 ```
 
-4. **Terminal 4 - Torii**:
-
-Uncomment the 'world_address' parameter in `dojo-starter/Scarb.toml` then:
+3. **Terminal 3 - Torii**:
 
 ```console
-cd /TheMarquis-contracts/l2/GAMEVAULT-Dojo && torii --world 0x6e31e6291f572cf76e11f1c99af8284f0d160f9f3af74e7e787a0f598bf0480
+cd game-contracts/l2/GAMEVAULT-Dojo && torii --world 0x6e31e6291f572cf76e11f1c99af8284f0d160f9f3af74e7e787a0f598bf0480
 ```
+Note: The world address depends on your output from `sozo migrate`.
 
 5. **initialize erc_20**
 
@@ -81,7 +80,7 @@ bash ./scripts/default_auth.sh
 2. use the following command
 
 ```bash
-sozo migrate --rpc-url https://starknet-goerli.g.alchemy.com/v2/DJQcaCKLJQ1gGtclqomTXYo6aRzeuKe5
+sozo migrate --rpc-url https://starknet-goerli.g.alchemy.com/v2/DJ...
 ```
 
 3. transaction will fail, need to go to explorer and wait for the pending transactions to be confirmed
