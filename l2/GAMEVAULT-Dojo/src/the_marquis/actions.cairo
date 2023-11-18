@@ -19,21 +19,23 @@ mod actions {
     use starknet::SyscallResultTrait;
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
     use l2::the_marquis::models::{Game, Choice, Move, WorldHelperStorage};
-    use l2::the_marquis::utils::{seed, random, is_winning_move,get_multiplier, make_move, MAX_AMOUNT_MOVES};
+    use l2::the_marquis::utils::{
+        seed, random, is_winning_move, get_multiplier, make_move, MAX_AMOUNT_MOVES
+    };
     use super::IActions;
 
     // declaring custom event struct
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
-        Moved: Moved,
+        Winner: Winner,
         GameInitialized: GameInitialized,
-        PlayerMoved: PlayerMoved
+        PlayerMove: PlayerMove
     }
 
     // declaring custom event struct
     #[derive(Drop, starknet::Event)]
-    struct Moved {
+    struct Winner {
         game_id: u32,
         player_address: ContractAddress,
         amount: u32
@@ -48,11 +50,11 @@ mod actions {
 
     // declaring custom event struct
     #[derive(Drop, starknet::Event)]
-    struct PlayerMoved {
+    struct PlayerMove {
         #[key]
-        player_address: ContractAddress, 
+        player_address: ContractAddress,
         #[key]
-        choice: Choice, 
+        choice: Choice,
         #[key]
         amount: u32
     }
@@ -61,8 +63,7 @@ mod actions {
     #[external(v0)]
     impl ActionsImpl of IActions<ContractState> {
         // ContractState is defined by system decorator expansion
-        fn spawn(self: @ContractState) -> u32{
-
+        fn spawn(self: @ContractState) -> u32 {
             // only owner can call this
             self._only_owner();
 
@@ -71,37 +72,37 @@ mod actions {
             let game_id = world.uuid();
 
             // Init a new game and default values
-            set!(
-                world,
-                (
-                    Game {
-                        game_id, move_count:0, last_total_paid:0
-                    }
-            ));
+            set!(world, (Game { game_id, move_count: 0, last_total_paid: 0 }));
             emit!(world, GameInitialized { game_id });
             game_id
         }
 
         // Implementation of the move function for the ContractState struct.
         fn move(self: @ContractState, game_id: u32, choices: Span<Choice>, amounts: Span<u32>) {
-            
             let player_address = get_caller_address();
             // there are 48 choices at most
-            assert(choices.len() > 0 && choices.len() <= 48 && choices.len() == amounts.len(), 'arrays length not match');
+            assert(
+                choices.len() > 0 && choices.len() <= 48 && choices.len() == amounts.len(),
+                'arrays length not match'
+            );
             let mut index = 0;
-            let mut aggregated_amount:u32 = 0;
+            let mut aggregated_amount: u32 = 0;
             loop {
                 if index == choices.len() {
                     break;
                 }
-                let amount:u32 = (*amounts[index]).try_into().unwrap();
-                self.move_internal(game_id, player_address, (*choices[index]).try_into().unwrap(), amount);
+                let amount: u32 = (*amounts[index]).try_into().unwrap();
+                self
+                    .move_internal(
+                        game_id, player_address, (*choices[index]).try_into().unwrap(), amount
+                    );
                 aggregated_amount = aggregated_amount + amount;
                 index = index + 1;
             };
-            
+
             //trasnfer aggregated amount of tokens
-            let result = self._transfer_from(player_address, get_contract_address(), aggregated_amount);
+            let result = self
+                ._transfer_from(player_address, get_contract_address(), aggregated_amount);
             assert(result, 'Transfer failed');
         }
 
@@ -110,7 +111,6 @@ mod actions {
         }
 
         fn set_winner(self: @ContractState, game_id: u32, winning_number: u8) {
-
             // only owner can call this
             self._only_owner();
 
@@ -135,7 +135,13 @@ mod actions {
                     // transfer tokens to player
                     let result = self._transfer(curr_move.player, player_earned_amount);
                     assert(result, 'Transfer failed');
-                    aggregate_amount = aggregate_amount + player_earned_amount
+                    aggregate_amount = aggregate_amount + player_earned_amount;
+                    emit!(
+                        world,
+                        Winner {
+                            game_id, player_address: curr_move.player, amount: player_earned_amount
+                        }
+                    );
                 }
                 curr_move_counter = curr_move_counter + 1;
             };
@@ -158,7 +164,13 @@ mod actions {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        fn move_internal(self: @ContractState, game_id: u32, player_address: ContractAddress, choice: Choice, amount: u32) {
+        fn move_internal(
+            self: @ContractState,
+            game_id: u32,
+            player_address: ContractAddress,
+            choice: Choice,
+            amount: u32
+        ) {
             // Access the world dispatcher for reading.
             let world = self.world_dispatcher.read();
 
@@ -168,14 +180,13 @@ mod actions {
             assert(amount > 0, 'Amount cannot be zero');
 
             // create new move
-            let move_id = curr_game.move_count +1;
+            let move_id = curr_game.move_count + 1;
             let new_move = make_move(game_id, move_id, player_address, choice, amount);
 
             // update move count
             curr_game.move_count = move_id;
             set!(world, (curr_game, new_move));
-            emit!(world, PlayerMoved { player_address, choice, amount});
-
+            emit!(world, PlayerMove { player_address, choice, amount });
         }
 
         fn _only_owner(self: @ContractState) {
@@ -193,7 +204,9 @@ mod actions {
             let helper_storage = get!(world, (get_contract_address()), WorldHelperStorage);
             helper_storage.usd_m_address
         }
-        fn _transfer_from(self: @ContractState, _from: ContractAddress, _to: ContractAddress, _amount: u32) -> bool{
+        fn _transfer_from(
+            self: @ContractState, _from: ContractAddress, _to: ContractAddress, _amount: u32
+        ) -> bool {
             let mut call_data: Array<felt252> = ArrayTrait::new();
             Serde::serialize(@_from, ref call_data);
             Serde::serialize(@_to, ref call_data);
@@ -205,7 +218,7 @@ mod actions {
                 .unwrap_syscall();
             Serde::<bool>::deserialize(ref res).unwrap()
         }
-        fn _transfer(self: @ContractState, _to: ContractAddress, _amount: u32) -> bool{
+        fn _transfer(self: @ContractState, _to: ContractAddress, _amount: u32) -> bool {
             let mut call_data: Array<felt252> = ArrayTrait::new();
             Serde::serialize(@_to, ref call_data);
             Serde::serialize(@_amount, ref call_data);
