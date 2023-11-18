@@ -135,13 +135,13 @@ mod actions {
                     // transfer tokens to player
                     let result = self._transfer(curr_move.player, player_earned_amount);
                     assert(result, 'Transfer failed');
-                    aggregate_amount = aggregate_amount + player_earned_amount;
                     emit!(
                         world,
                         Winner {
                             game_id, player_address: curr_move.player, amount: player_earned_amount
                         }
                     );
+                    aggregate_amount = aggregate_amount + player_earned_amount;
                 }
                 curr_move_counter = curr_move_counter + 1;
             };
