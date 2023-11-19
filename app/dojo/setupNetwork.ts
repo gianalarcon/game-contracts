@@ -4,7 +4,7 @@ import { RPCProvider, Query, getContractByName } from "@dojoengine/core";
 import { Account, num } from "starknet";
 import { GraphQLClient } from "graphql-request";
 // import { getSdk } from "../generated/graphql";
-import manifest from "../../../game-contracts/dojo-contracts/target/dev/manifest.json";
+import manifest from "../../../game-roulette/dojo-contracts/target/dev/manifest.json";
 
 export type SetupNetworkResult = Awaited<ReturnType<typeof setupNetwork>>;
 
