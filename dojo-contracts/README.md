@@ -25,13 +25,13 @@ katana --disable-fee
 2. **Terminal 2 - Contracts**:
 
 ```console
-cd game-contracts/l2/GAMEVAULT-Dojo && sozo build && sozo migrate
+cd game-roulette/l2/GAMEVAULT-Dojo && sozo build && sozo migrate
 ```
 
 3. **Terminal 3 - Torii**:
 
 ```console
-cd game-contracts/l2/GAMEVAULT-Dojo && torii --world 0x6e31e6291f572cf76e11f1c99af8284f0d160f9f3af74e7e787a0f598bf0480
+cd game-roulette/l2/GAMEVAULT-Dojo && torii --world 0x6e31e6291f572cf76e11f1c99af8284f0d160f9f3af74e7e787a0f598bf0480
 ```
 Note: The world address depends on your output from `sozo migrate`.
 
